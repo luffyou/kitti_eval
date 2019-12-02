@@ -52,7 +52,7 @@ const int NUM_CLASS = 3;
 vector<string> CLASS_NAMES;
 // the minimum overlap required for 2D evaluation on the image/ground plane and 3D evaluation
 // const double MIN_OVERLAP[3][3] = {{0.7, 0.5, 0.5}, {0.5, 0.25, 0.25}, {0.5, 0.25, 0.25}};
-const double MIN_OVERLAP[3][3] = {{0.7, 0.5, 0.5}, {0.7, 0.5, 0.5}, {0.7, 0.5, 0.5}};
+const double MIN_OVERLAP[3][3] = {{0.7, 0.5, 0.5}, {0.7, 0.5, 0.5}, {0.7, 0.5, 0.5}}; // {分别为easy、moderate、hard（图片集的难度划分）下的{car、ped、cyc的iou thresh}}
 
 // no. of recall steps that should be evaluated (discretized)
 const double N_SAMPLE_PTS = 41;
@@ -719,7 +719,7 @@ void saveAndPlotPlots(string dir_name,string file_name,string obj_type,vector<do
   for (int v = 0; v < 3; ++v)
       for (int i = 0; i < vals[v].size(); i = i + 4)
           sum[v] += vals[v][i];
-  printf("%s AP: %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
+  printf("%s AP(percent*100): %f %f %f\n", file_name.c_str(), sum[0] / 11 * 100, sum[1] / 11 * 100, sum[2] / 11 * 100);
 
 
   // create png + eps
@@ -828,6 +828,7 @@ bool eval(string gt_dir, string result_dir, Mail* mail){
 
     // read ground truth and result poses
     bool gt_success,det_success;
+    // ！load的时候有检测格式是否正确，以及判断是否为-10、-1000决定2D、3D是否检测
     vector<tGroundtruth> gt   = loadGroundtruth(gt_dir + "/" + file_name,gt_success);
     vector<tDetection>   det  = loadDetections(result_dir + "/data/" + file_name,
             compute_aos, eval_image, eval_ground, eval_3d, det_success);
@@ -920,7 +921,8 @@ int32_t main (int32_t argc,char *argv[]) {
     cout << "Usage: ./eval_detection_3d_offline gt_dir result_dir" << endl;
     return 1;
   }
-
+  // gt_dir 需要手动指定，设定label文件夹
+  // result 需要手动指定，其中的data放提交的结果文件，同时会自动生成plot文件夹用于绘图
   // read arguments
   string gt_dir = argv[1];
   string result_dir = argv[2];
